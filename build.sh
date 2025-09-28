@@ -1,4 +1,6 @@
-rm -rf ./build/*
-cmake -B build
-cmake --build ./build
-./build/vulkan-playground
+rm -rf ./build
+mkdir -p build
+cd build
+cmake -DCMAKE_BUILD_TYPE=Release ..
+cmake --build .
+./VulkanApp
