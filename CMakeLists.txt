@@ -9,12 +9,18 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(GLFW REQUIRED glfw3)
 pkg_check_modules(Vulkan REQUIRED vulkan)
 
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/src/shaders DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+
 add_executable(MyGraphicApp
     src/main.cpp
     src/Window.cpp
     src/VulkanContext.cpp
     src/Swapchain.cpp
     src/CommandBuffer.cpp
+    src/Triangle.cpp
+    src/TriangleRenderer.cpp
+    src/math/Vector2.cpp
+    src/math/Matrix3.cpp
 )
 
 target_include_directories(MyGraphicApp PRIVATE 
@@ -30,7 +36,7 @@ target_link_libraries(MyGraphicApp
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     target_compile_options(VulkanApp PRIVATE 
-        -Wall -Wextra -Wpedantic
+        -Wall -Wextra -Wpedantic -g
         -O2
     )
 endif()

@@ -15,6 +15,7 @@
         pkgs.vulkan-validation-layers
         pkgs.vulkan-tools
         pkgs.glfw-wayland
+        pkgs.glslang
         pkgs.gcc
         pkgs.cmake
         pkgs.gdb

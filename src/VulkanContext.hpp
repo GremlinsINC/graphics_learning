@@ -21,6 +21,7 @@ public:
     VkSurfaceKHR getSurface() const { return surface_; }
     uint32_t getGraphicsQueueFamily() const { return queueFamilies_.graphicsFamily.value(); }
     uint32_t getPresentQueueFamily() const { return queueFamilies_.presentFamily.value(); }
+    uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
     const QueueFamilyIndices& getQueueFamilyIndices() const { return queueFamilies_; }
     Window& getWindow() const { return window_; }
     

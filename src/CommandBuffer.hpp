@@ -1,10 +1,10 @@
 #pragma once
 
 #include "VulkanContext.hpp"
+#include "Swapchain.hpp"
 #include <array>
 
-// Предварительное объявление вместо включения
-class Swapchain;
+class TriangleRenderer;
 
 class CommandBuffer {
 public:
@@ -14,7 +14,7 @@ public:
     CommandBuffer(const CommandBuffer&) = delete;
     CommandBuffer& operator=(const CommandBuffer&) = delete;
     
-    void recordClearCommand(uint32_t imageIndex, const std::array<float, 4>& clearColor);
+    void recordTriangleRendering(uint32_t imageIndex, TriangleRenderer& renderer);
     void submit(uint32_t imageIndex, VkSemaphore waitSemaphore, VkSemaphore signalSemaphore);
     
     VkCommandBuffer getHandle() const { return commandBuffer_; }
@@ -29,5 +29,4 @@ private:
     void createCommandPool();
     void createCommandBuffer();
     
-    void transitionImageLayout(VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout);
 };

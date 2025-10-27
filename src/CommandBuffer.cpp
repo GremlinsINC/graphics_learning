@@ -1,6 +1,7 @@
 #include "CommandBuffer.hpp"
-#include "Swapchain.hpp"  // Теперь включаем здесь
+#include "TriangleRenderer.hpp"
 #include <stdexcept>
+#include <iostream>
 
 CommandBuffer::CommandBuffer(VulkanContext& context, Swapchain& swapchain) 
     : context_(context), swapchain_(swapchain) {
@@ -37,48 +38,28 @@ void CommandBuffer::createCommandBuffer() {
     }
 }
 
-void CommandBuffer::recordClearCommand(uint32_t imageIndex, const std::array<float, 4>& clearColor) {
+
+void CommandBuffer::recordTriangleRendering(uint32_t imageIndex, TriangleRenderer& renderer) {
+    std::cout << "CommandBuffer: Starting recordTriangleRendering..." << std::endl;
+
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    
+
+    std::cout << "CommandBuffer: Beginning command buffer..." << std::endl;
     if (vkBeginCommandBuffer(commandBuffer_, &beginInfo) != VK_SUCCESS) {
         throw std::runtime_error("Failed to begin recording command buffer");
     }
-    
-    VkImage image = swapchain_.getImages()[imageIndex];
-    
-    // Transition to transfer destination
-    transitionImageLayout(image, 
-                         VK_IMAGE_LAYOUT_UNDEFINED, 
-                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-    
-    // Clear the image
-    VkClearColorValue clearColorValue = {
-        .float32 = {clearColor[0], clearColor[1], clearColor[2], clearColor[3]}
-    };
-    
-    VkImageSubresourceRange range{};
-    range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    range.baseMipLevel = 0;
-    range.levelCount = 1;
-    range.baseArrayLayer = 0;
-    range.layerCount = 1;
-    
-    vkCmdClearColorImage(commandBuffer_, 
-                        image, 
-                        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 
-                        &clearColorValue, 
-                        1, 
-                        &range);
-    
-    // Transition to present layout
-    transitionImageLayout(image, 
-                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 
-                         VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
-    
+
+
+    std::cout << "CommandBuffer: Calling renderer..." << std::endl;
+    renderer.render(commandBuffer_, imageIndex);
+
+    std::cout << "CommandBuffer: Ending command buffer..." << std::endl;
     if (vkEndCommandBuffer(commandBuffer_) != VK_SUCCESS) {
         throw std::runtime_error("Failed to record command buffer");
     }
+
+    std::cout << "CommandBuffer: recordTriangleRendering completed" << std::endl;
 }
 
 void CommandBuffer::submit(uint32_t imageIndex, VkSemaphore waitSemaphore, VkSemaphore signalSemaphore) {
@@ -99,43 +80,3 @@ void CommandBuffer::submit(uint32_t imageIndex, VkSemaphore waitSemaphore, VkSem
     }
 }
 
-void CommandBuffer::transitionImageLayout(VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout) {
-    VkImageMemoryBarrier barrier{};
-    barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-    barrier.oldLayout = oldLayout;
-    barrier.newLayout = newLayout;
-    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-    barrier.image = image;
-    barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    barrier.subresourceRange.baseMipLevel = 0;
-    barrier.subresourceRange.levelCount = 1;
-    barrier.subresourceRange.baseArrayLayer = 0;
-    barrier.subresourceRange.layerCount = 1;
-    
-    VkPipelineStageFlags sourceStage;
-    VkPipelineStageFlags destinationStage;
-    
-    if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
-        barrier.srcAccessMask = 0;
-        barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-        
-        sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-        destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-    } else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_PRESENT_SRC_KHR) {
-        barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-        barrier.dstAccessMask = 0;
-        
-        sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-        destinationStage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
-    } else {
-        throw std::invalid_argument("Unsupported layout transition");
-    }
-    
-    vkCmdPipelineBarrier(commandBuffer_,
-                        sourceStage, destinationStage,
-                        0,
-                        0, nullptr,
-                        0, nullptr,
-                        1, &barrier);
-}
