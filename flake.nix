@@ -1,5 +1,4 @@
 {
-  description = "Vulkan playground on NixOS (C++ + GLFW)";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -16,9 +15,11 @@
         pkgs.vulkan-validation-layers
         pkgs.vulkan-tools
         pkgs.glfw-wayland
+        pkgs.glslang
         pkgs.gcc
         pkgs.cmake
         pkgs.gdb
+        pkgs.pkg-config
       ];
       shellHook = ''
         echo "🚀 Vulkan dev environment loaded!"
